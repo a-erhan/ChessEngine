@@ -1,17 +1,27 @@
 """
 Chess Engine API - Flask Backend
-Eğitilmiş modellere erişim için REST API
+Egitilmis modellere erisim icin REST API + Frontend servis
 """
 import os
-import json
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from chess_engine import chess_ai, MODEL_CONFIGS
 
-app = Flask(__name__)
+FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend')
 
-# CORS: GitHub Pages'dan gelen isteklere izin ver
+app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+
+# ─── FRONTEND SERVE ──────────────────────────────────────────────────────────
+
+@app.route('/')
+def index():
+    return send_from_directory(FRONTEND_DIR, 'index.html')
+
+@app.route('/<path:path>')
+def static_files(path):
+    return send_from_directory(FRONTEND_DIR, path)
 
 
 # ─── HEALTH CHECK ────────────────────────────────────────────────────────────

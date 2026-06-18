@@ -1,24 +1,18 @@
-/* ────────────────────────────────────────────────────────────────────
-   game.js — Chess Engine AI Frontend Logic
-   ──────────────────────────────────────────────────────────────────── */
-
 'use strict';
 
 // ══════════════════════════════════════════════════════════════════════
 // CONFIGURATION
 // ══════════════════════════════════════════════════════════════════════
 
-// Backend URL otomatik algılama:
-// - Lokal geliştirme: http://localhost:5001
-// - Production (GitHub Pages): Render.com URL
-const isLocalhost = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
-const API_BASE = window.CHESS_API_URL
-  || (isLocalhost ? 'http://localhost:5001' : 'https://chessengine-q71t.onrender.com');
+// Backend URL otomatik algilama:
+// Ayni sunucudan (Flask) servis edildigi icin relative path kullanabiliriz.
+// Eger baska yerden calisacaksa tam URL gerekebilir.
+const API_BASE = window.location.origin;
 
 const MODEL_INFO = {
-  agresif:  { emoji: '🔥', label: 'Agresif',  tag: 'Phase1 E10' },
-  tedbirli: { emoji: '🛡️', label: 'Tedbirli', tag: 'Finetune E5' },
-  akil:     { emoji: '🧠', label: 'Akıl',     tag: 'Ultra E3' }
+  agresif:  { label: 'Agresif',  tag: 'E10', class: 'dot-red' },
+  tedbirli: { label: 'Tedbirli', tag: 'FT E5', class: 'dot-blue' },
+  akil:     { label: 'Akil',     tag: 'Ultra E3', class: 'dot-gold' }
 };
 
 // ══════════════════════════════════════════════════════════════════════
@@ -30,14 +24,11 @@ let board = null;           // chessboard.js instance
 let gameState = {
   mode: 'human-white',      // 'human-white' | 'human-black' | 'bot-vs-bot'
   model1: 'agresif',        // beyaz / tek model
-  model2: 'tedbirli',       // siyah (bot vs bot'ta kullanılır)
+  model2: 'tedbirli',       // siyah (bot vs bot'ta kullanilir)
   running: false,
   paused: false,
-  botVsBotInterval: null,
-  moveDelay: 1000,
-  moveHistory: [],           // [{san, uci, fen}]
-  lastFrom: null,
-  lastTo: null,
+  moveDelay: 1200,
+  moveHistory: [],
 };
 
 // ══════════════════════════════════════════════════════════════════════
@@ -52,8 +43,8 @@ function showToast(msg, type = 'info', duration = 3500) {
   container.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = '0';
-    toast.style.transform = 'translateX(20px)';
-    toast.style.transition = '0.3s ease';
+    toast.style.transform = 'translateX(16px)';
+    toast.style.transition = '0.25s ease';
     setTimeout(() => toast.remove(), 300);
   }, duration);
 }
@@ -67,28 +58,31 @@ function setStatus(text, online = null) {
 }
 
 function setThinking(side, thinking) {
-  // side: 'top' | 'bottom'
   const el = document.getElementById(`${side}Thinking`);
   const card = document.getElementById(`${side}PlayerCard`);
   if (!el || !card) return;
-  el.style.display = thinking ? 'flex' : 'none';
-  if (thinking) card.classList.add('active');
-  else          card.classList.remove('active');
+  if (thinking) {
+    el.classList.remove('hidden');
+    card.classList.add('active');
+  } else {
+    el.classList.add('hidden');
+    card.classList.remove('active');
+  }
 }
 
 function updateEvalBar(value) {
-  // value: -1 to +1, +1 beyaz kazanıyor
+  // value: -1 to +1, +1 beyaz kazaniyor
   const pct = Math.round(((value + 1) / 2) * 100);
   const clamped = Math.max(5, Math.min(95, pct));
-  document.getElementById('evalFillWhite').style.height = clamped + '%';
+  document.getElementById('evalFill').style.height = clamped + '%';
   const whiteAdv = value > 0 ? `+${(value * 5).toFixed(1)}` : (value * 5).toFixed(1);
-  document.getElementById('evalWhiteLabel').textContent = value > 0 ? whiteAdv : '+0.0';
-  document.getElementById('evalBlackLabel').textContent = value < 0 ? `+${(-value * 5).toFixed(1)}` : '+0.0';
+  document.getElementById('evalWhiteLabel').textContent = value > 0 ? whiteAdv : '0.0';
+  document.getElementById('evalBlackLabel').textContent = value < 0 ? `+${(-value * 5).toFixed(1)}` : '0.0';
 }
 
 function addMoveToHistory(moveNum, san, color) {
   const list = document.getElementById('moveList');
-  const empty = list.querySelector('.move-list-empty');
+  const empty = list.querySelector('.move-empty');
   if (empty) empty.remove();
 
   const rowId = `move-row-${Math.ceil(moveNum / 2)}`;
@@ -114,13 +108,11 @@ function addMoveToHistory(moveNum, san, color) {
 }
 
 function highlightLastMove(fromSq, toSq) {
-  // Önceki highlight'ları temizle
   document.querySelectorAll('.highlight-from, .highlight-to').forEach(el => {
     el.classList.remove('highlight-from', 'highlight-to');
   });
 
   if (!fromSq || !toSq) return;
-  // chessboard.js square sınıfı: "square-e2" gibi
   const fromEl = document.querySelector(`.square-${fromSq}`);
   const toEl   = document.querySelector(`.square-${toSq}`);
   if (fromEl) fromEl.classList.add('highlight-from');
@@ -133,25 +125,6 @@ function updateGameInfo(statusText, moveCount) {
 }
 
 // ══════════════════════════════════════════════════════════════════════
-// PARTICLE SYSTEM
-// ══════════════════════════════════════════════════════════════════════
-
-function initParticles() {
-  const container = document.getElementById('particles');
-  for (let i = 0; i < 25; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    p.style.left      = Math.random() * 100 + 'vw';
-    p.style.animationDuration  = (8 + Math.random() * 12) + 's';
-    p.style.animationDelay     = (-Math.random() * 15) + 's';
-    p.style.width  = (1 + Math.random() * 2) + 'px';
-    p.style.height = p.style.width;
-    p.style.opacity = Math.random() * 0.6;
-    container.appendChild(p);
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════════
 // API
 // ══════════════════════════════════════════════════════════════════════
 
@@ -159,13 +132,13 @@ async function checkBackend() {
   try {
     const res = await fetch(`${API_BASE}/api/health`, { signal: AbortSignal.timeout(5000) });
     if (res.ok) {
-      setStatus('Backend bağlı ✓', true);
-      showToast('♟ Chess Engine API bağlandı!', 'success');
+      setStatus('Backend bagli', true);
+      showToast('Chess Engine API baglandi!', 'success');
       return true;
     }
   } catch {
-    setStatus('Backend bağlanamadı', false);
-    showToast('⚠ Backend çevrimdışı — localhost:5000 başlatın', 'error', 6000);
+    setStatus('Backend baglanamadi', false);
+    showToast('Backend cevrimdisi', 'error', 6000);
     return false;
   }
 }
@@ -186,7 +159,6 @@ async function fetchMove(fen, modelKey) {
 // ══════════════════════════════════════════════════════════════════════
 
 function initSetupScreen() {
-  // Mod seçimi
   document.querySelectorAll('.mode-card').forEach(card => {
     card.addEventListener('click', () => {
       document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
@@ -196,7 +168,6 @@ function initSetupScreen() {
     });
   });
 
-  // Model 1 seçimi (slot=1)
   document.querySelectorAll('[data-slot="1"]').forEach(card => {
     card.addEventListener('click', () => {
       document.querySelectorAll('[data-slot="1"]').forEach(c => c.classList.remove('selected'));
@@ -205,7 +176,6 @@ function initSetupScreen() {
     });
   });
 
-  // Model 2 seçimi (slot=2, bot vs bot)
   document.querySelectorAll('[data-slot="2"]').forEach(card => {
     card.addEventListener('click', () => {
       document.querySelectorAll('[data-slot="2"]').forEach(c => c.classList.remove('selected'));
@@ -214,7 +184,6 @@ function initSetupScreen() {
     });
   });
 
-  // Başlat
   document.getElementById('startBtn').addEventListener('click', startGame);
 }
 
@@ -223,17 +192,11 @@ function updateSetupUI() {
   document.getElementById('bot2Section').style.display = isBvB ? 'block' : 'none';
 
   const labels = {
-    'human-white': 'AI Modeli Seç (Siyah Oynar)',
-    'human-black': 'AI Modeli Seç (Beyaz Oynar)',
-    'bot-vs-bot':  'Beyaz Taraf (1. Model)',
+    'human-white': 'AI Modeli Sec (Siyah Oynar)',
+    'human-black': 'AI Modeli Sec (Beyaz Oynar)',
+    'bot-vs-bot':  'Beyaz Taraf - 1. Model',
   };
   document.getElementById('modelSectionLabel').textContent = labels[gameState.mode];
-
-  // Beyaz/Siyah badge'lerini güncelle
-  document.querySelectorAll('[data-slot="1"] .model-badge').forEach(b => {
-    b.textContent = isBvB ? 'Beyaz' : (gameState.mode === 'human-black' ? 'Beyaz AI' : 'Siyah AI');
-    b.style.display = 'block';
-  });
 }
 
 // ══════════════════════════════════════════════════════════════════════
@@ -247,24 +210,19 @@ function startGame() {
 }
 
 function initGame() {
-  // Reset state
   game = new Chess();
   gameState.running   = true;
   gameState.paused    = false;
   gameState.moveHistory = [];
 
-  // Move list temizle
   const list = document.getElementById('moveList');
-  list.innerHTML = '<div class="move-list-empty">Henüz hamle yapılmadı</div>';
+  list.innerHTML = '<div class="move-empty">Henuz hamle yapilmadi</div>';
   document.getElementById('gameOverOverlay').classList.add('hidden');
 
-  // Player bilgilerini ayarla
   setupPlayerCards();
 
-  // Tahta yönü
   const orientation = (gameState.mode === 'human-black') ? 'black' : 'white';
 
-  // chessboard.js config
   const config = {
     draggable: gameState.mode !== 'bot-vs-bot',
     position: 'start',
@@ -278,19 +236,16 @@ function initGame() {
   if (board) board.destroy();
   board = Chessboard('chessboard', config);
 
-  // Hamle geçmişi sıfırla
-  updateGameInfo('Oyun başladı', 1);
+  updateGameInfo('Oyun basladi', 1);
   updateEvalBar(0);
   highlightLastMove(null, null);
 
-  // Bot vs bot kontrollerini göster
   if (gameState.mode === 'bot-vs-bot') {
-    document.getElementById('botControls').style.display = 'flex';
+    document.getElementById('botControls').classList.remove('hidden');
     setupBotControls();
     setTimeout(() => doBotMove(), 800);
   } else {
-    document.getElementById('botControls').style.display = 'none';
-    // Siyah oynuyorsak AI ilk hamleyi yapsın
+    document.getElementById('botControls').classList.add('hidden');
     if (gameState.mode === 'human-black') {
       setTimeout(() => doBotMove(), 800);
     }
@@ -302,34 +257,46 @@ function setupPlayerCards() {
   const m1 = MODEL_INFO[model1];
   const m2 = MODEL_INFO[model2];
 
-  const topName    = document.getElementById('topPlayerName');
-  const topModel   = document.getElementById('topPlayerModel');
-  const topAvatar  = document.getElementById('topAvatar');
-  const botName    = document.getElementById('bottomPlayerName');
-  const botModel   = document.getElementById('bottomPlayerModel');
-  const botAvatar  = document.getElementById('bottomAvatar');
+  const topColor    = document.getElementById('topColorBar');
+  const topLabel    = document.getElementById('topPlayerLabel');
+  const topName     = document.getElementById('topPlayerName');
+  const topTag      = document.getElementById('topPlayerTag');
+
+  const botColor    = document.getElementById('bottomColorBar');
+  const botLabel    = document.getElementById('bottomPlayerLabel');
+  const botName     = document.getElementById('bottomPlayerName');
+  const botTag      = document.getElementById('bottomPlayerTag');
 
   if (mode === 'human-white') {
-    topAvatar.textContent  = m1.emoji;
-    topName.textContent    = `${m1.label} (Siyah)`;
-    topModel.textContent   = m1.tag;
-    botAvatar.textContent  = '👤';
-    botName.textContent    = 'Sen (Beyaz)';
-    botModel.textContent   = 'İnsan';
+    topColor.className = 'player-color-bar black';
+    topLabel.textContent = 'AI Siyah';
+    topName.textContent = m1.label;
+    topTag.textContent = m1.tag;
+
+    botColor.className = 'player-color-bar white';
+    botLabel.textContent = 'Sen Beyaz';
+    botName.textContent = 'Insan';
+    botTag.textContent = '';
   } else if (mode === 'human-black') {
-    topAvatar.textContent  = '👤';
-    topName.textContent    = 'Sen (Siyah)';
-    topModel.textContent   = 'İnsan';
-    botAvatar.textContent  = m1.emoji;
-    botName.textContent    = `${m1.label} (Beyaz)`;
-    botModel.textContent   = m1.tag;
+    topColor.className = 'player-color-bar white';
+    topLabel.textContent = 'Sen Siyah';
+    topName.textContent = 'Insan';
+    topTag.textContent = '';
+
+    botColor.className = 'player-color-bar black';
+    botLabel.textContent = 'AI Beyaz';
+    botName.textContent = m1.label;
+    botTag.textContent = m1.tag;
   } else {
-    topAvatar.textContent  = m2.emoji;
-    topName.textContent    = `${m2.label} (Siyah)`;
-    topModel.textContent   = m2.tag;
-    botAvatar.textContent  = m1.emoji;
-    botName.textContent    = `${m1.label} (Beyaz)`;
-    botModel.textContent   = m1.tag;
+    topColor.className = 'player-color-bar black';
+    topLabel.textContent = 'AI Siyah';
+    topName.textContent = m2.label;
+    topTag.textContent = m2.tag;
+
+    botColor.className = 'player-color-bar white';
+    botLabel.textContent = 'AI Beyaz';
+    botName.textContent = m1.label;
+    botTag.textContent = m1.tag;
   }
 }
 
@@ -340,7 +307,6 @@ function setupPlayerCards() {
 function onDragStart(source, piece) {
   if (game.game_over()) return false;
   if (!gameState.running) return false;
-  // Human rengi kontrolü
   const humanColor = gameState.mode === 'human-black' ? 'b' : 'w';
   if (game.turn() !== humanColor) return false;
   if ((piece.search(/^b/) !== -1 && humanColor === 'w')) return false;
@@ -349,9 +315,7 @@ function onDragStart(source, piece) {
 }
 
 function onDrop(source, target) {
-  // Piyon terfisi kontrolü
   const promotion = isPromotion(source, target) ? 'q' : undefined;
-
   const move = game.move({
     from: source,
     to: target,
@@ -361,8 +325,6 @@ function onDrop(source, target) {
   if (move === null) return 'snapback';
 
   processMove(move, false);
-
-  // Bot sırası
   setTimeout(() => doBotMove(), 300);
 }
 
@@ -388,7 +350,6 @@ async function doBotMove() {
   const isWhiteTurn = game.turn() === 'w';
   const { mode, model1, model2 } = gameState;
 
-  // Sıranın bot'a ait olup olmadığını kontrol et
   const isBotTurn =
     mode === 'bot-vs-bot' ||
     (mode === 'human-white' && !isWhiteTurn) ||
@@ -396,7 +357,6 @@ async function doBotMove() {
 
   if (!isBotTurn) return;
 
-  // Hangi model?
   let modelKey;
   if (mode === 'bot-vs-bot') {
     modelKey = isWhiteTurn ? model1 : model2;
@@ -404,10 +364,9 @@ async function doBotMove() {
     modelKey = model1;
   }
 
-  // Thinking göster
   const thinkSide = determineThinkingSide(isWhiteTurn);
   setThinking(thinkSide, true);
-  updateGameInfo(`${MODEL_INFO[modelKey].emoji} ${MODEL_INFO[modelKey].label} düşünüyor...`, game.moveNumber());
+  updateGameInfo(`${MODEL_INFO[modelKey].label} dusunuyor...`, game.moveNumber());
 
   try {
     const result = await fetchMove(game.fen(), modelKey);
@@ -417,7 +376,6 @@ async function doBotMove() {
       return;
     }
 
-    // Hamleyi uygula
     const move = game.move({
       from: result.from,
       to: result.to,
@@ -425,20 +383,19 @@ async function doBotMove() {
     });
 
     if (!move) {
-      showToast(`❌ Model geçersiz hamle döndürdü: ${result.uci}`, 'error');
+      showToast(`Model gecersiz hamle dondurdu: ${result.uci}`, 'error');
       return;
     }
 
     processMove(move, true, result.value);
 
-    // Bot vs Bot: devam et
     if (mode === 'bot-vs-bot' && !game.game_over()) {
       setTimeout(() => doBotMove(), gameState.moveDelay);
     }
 
   } catch (err) {
-    showToast(`❌ Backend hatası: ${err.message}`, 'error');
-    setStatus('Backend hatası', false);
+    showToast(`Backend hatasi: ${err.message}`, 'error');
+    setStatus('Backend hatasi', false);
   } finally {
     setThinking('top', false);
     setThinking('bottom', false);
@@ -446,7 +403,6 @@ async function doBotMove() {
 }
 
 function determineThinkingSide(isWhiteTurn) {
-  // board orientation: 'white' → beyaz altta
   const orient = gameState.mode === 'human-black' ? 'black' : 'white';
   if (orient === 'white') return isWhiteTurn ? 'bottom' : 'top';
   return isWhiteTurn ? 'top' : 'bottom';
@@ -470,8 +426,8 @@ function processMove(move, isBot, evalValue = null) {
   }
 
   const statusText = game.in_check()
-    ? '⚠️ Şah!'
-    : (isBot ? '👤 Senin sıran' : '🤖 AI düşünüyor...');
+    ? 'Sah!'
+    : (isBot ? 'Senin siran' : 'AI dusunuyor...');
 
   updateGameInfo(statusText, moveNum);
 
@@ -488,27 +444,22 @@ function showGameOver() {
   gameState.running = false;
 
   const overlay = document.getElementById('gameOverOverlay');
-  const icon    = document.getElementById('gameOverIcon');
-  const title   = document.getElementById('gameOverTitle');
-  const reason  = document.getElementById('gameOverReason');
+  const resultDiv = document.getElementById('gameOverResult');
+  const reasonDiv = document.getElementById('gameOverReason');
 
   if (game.in_checkmate()) {
     const winner = game.turn() === 'w' ? 'Siyah' : 'Beyaz';
-    icon.textContent  = '♟';
-    title.textContent = `${winner} Kazandı!`;
-    reason.textContent = 'Şah-Mat';
+    resultDiv.textContent = `${winner} Kazandi`;
+    reasonDiv.textContent = 'Sah-Mat';
   } else if (game.in_stalemate()) {
-    icon.textContent  = '🤝';
-    title.textContent = 'Beraberlik';
-    reason.textContent = 'Pat';
+    resultDiv.textContent = 'Beraberlik';
+    reasonDiv.textContent = 'Pat';
   } else if (game.in_draw()) {
-    icon.textContent  = '🤝';
-    title.textContent = 'Beraberlik';
-    reason.textContent = '50 hamle / üç tekrar / yetersiz materyal';
+    resultDiv.textContent = 'Beraberlik';
+    reasonDiv.textContent = '50 hamle / uc tekrar / yetersiz materyal';
   } else {
-    icon.textContent  = '🏳';
-    title.textContent = 'Oyun Bitti';
-    reason.textContent = game.result?.() || '—';
+    resultDiv.textContent = 'Oyun Bitti';
+    reasonDiv.textContent = game.result?.() || '—';
   }
 
   overlay.classList.remove('hidden');
@@ -523,16 +474,23 @@ function setupBotControls() {
   const speedRange = document.getElementById('speedRange');
   const speedVal   = document.getElementById('speedValue');
 
-  pauseBtn.addEventListener('click', () => {
+  // Event listener'ları birden fazla kez eklememek icin klonlayip degistiriyoruz
+  const newPauseBtn = pauseBtn.cloneNode(true);
+  pauseBtn.parentNode.replaceChild(newPauseBtn, pauseBtn);
+
+  newPauseBtn.addEventListener('click', () => {
     gameState.paused = !gameState.paused;
-    pauseBtn.textContent = gameState.paused ? '▶ Devam Et' : '⏸ Duraklat';
-    pauseBtn.classList.toggle('paused', gameState.paused);
+    newPauseBtn.textContent = gameState.paused ? 'Devam Et' : 'Duraklat';
+    newPauseBtn.classList.toggle('paused', gameState.paused);
     if (!gameState.paused) doBotMove();
   });
 
-  speedRange.addEventListener('input', () => {
-    gameState.moveDelay = parseInt(speedRange.value);
-    speedVal.textContent = (gameState.moveDelay / 1000).toFixed(1) + 's';
+  const newSpeedRange = speedRange.cloneNode(true);
+  speedRange.parentNode.replaceChild(newSpeedRange, speedRange);
+
+  newSpeedRange.addEventListener('input', () => {
+    gameState.moveDelay = parseInt(newSpeedRange.value);
+    document.getElementById('speedValue').textContent = (gameState.moveDelay / 1000).toFixed(1) + 's';
   });
 }
 
@@ -541,7 +499,6 @@ function setupBotControls() {
 // ══════════════════════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
-  // New game butonu
   document.getElementById('newGameBtn').addEventListener('click', () => {
     gameState.running = false;
     gameState.paused  = false;
@@ -549,12 +506,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('setupScreen').classList.remove('hidden');
   });
 
-  // Rematch
   document.getElementById('rematchBtn').addEventListener('click', () => {
     initGame();
   });
 
-  initParticles();
   initSetupScreen();
   updateSetupUI();
   checkBackend();
