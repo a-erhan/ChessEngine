@@ -5,8 +5,9 @@
 // ══════════════════════════════════════════════════════════════════════
 
 // Backend URL otomatik algilama:
-const isLocalhost = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
-const API_BASE = isLocalhost ? 'http://localhost:5001' : 'https://chessengine-q71t.onrender.com';
+// GitHub Pages uzerindeysek Render backendine git, yoksa ayni sunucuyu (relative path) kullan.
+const isGitHubPages = window.location.hostname.includes('github.io');
+const API_BASE = isGitHubPages ? 'https://chessengine-q71t.onrender.com' : '';
 
 const MODEL_INFO = {
   agresif:  { label: 'Agresif',  tag: 'E10', class: 'dot-red' },
