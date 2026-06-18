@@ -4,8 +4,9 @@
 // CONFIGURATION
 // ══════════════════════════════════════════════════════════════════════
 
-// Backend URL: Sadece ayni sunucu uzerinden (Flask) relative path kullanilacak.
-const API_BASE = '';
+// Backend URL: GitHub Pages'da ise Render backendine git, degilse (lokal) ayni sunucuyu kullan.
+const isGitHubPages = window.location.hostname.includes('github.io');
+const API_BASE = isGitHubPages ? 'https://chessengine-q71t.onrender.com' : '';
 
 const MODEL_INFO = {
   agresif:  { label: 'Agresif',  tag: 'E10', class: 'dot-red' },
