@@ -269,7 +269,7 @@ function initGame() {
     draggable: gameState.mode !== 'bot-vs-bot',
     position: 'start',
     orientation,
-    pieceTheme: 'https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/img/chesspieces/wikipedia/{piece}.png',
+    pieceTheme: 'img/chesspieces/wikipedia/{piece}.png',
     onDragStart: onDragStart,
     onDrop: onDrop,
     onSnapEnd: onSnapEnd,
