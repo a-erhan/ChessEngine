@@ -10,11 +10,10 @@
 
 // Backend URL otomatik algılama:
 // - Lokal geliştirme: http://localhost:5001
-// - Production (GitHub Pages): window.CHESS_API_URL'den okur
-//   (config.js içinde tanımlanır, deploy sonrası güncellenir)
+// - Production (GitHub Pages): Render.com URL
 const isLocalhost = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
 const API_BASE = window.CHESS_API_URL
-  || (isLocalhost ? 'http://localhost:5001' : 'RENDER_URL_BURAYA');
+  || (isLocalhost ? 'http://localhost:5001' : 'https://chessengine-q71t.onrender.com');
 
 const MODEL_INFO = {
   agresif:  { emoji: '🔥', label: 'Agresif',  tag: 'Phase1 E10' },
