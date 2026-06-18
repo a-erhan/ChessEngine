@@ -1,63 +1,57 @@
-# ChessEngine AI ♟
+# ChessEngine AI
 
-Kendi eğittiğim derin öğrenme modelleriyle satranç oynayabileceğiniz web uygulaması.
+A web application where you can play chess against custom trained deep learning models.
 
-## 🎮 Özellikler
+## Features
 
-- **3 Farklı AI Modeli**
-  - 🔥 Agresif — Saldırgan oynama stili
-  - 🛡️ Tedbirli — Savunma odaklı
-  - 🧠 Akıl — Dengeli strateji
+- **3 Different AI Models**
+  - Aggressive — Offensive playstyle
+  - Cautious — Defense-oriented
+  - Wise — Balanced strategy
 
-- **Oyun Modları**
-  - İnsan vs Bot (Beyaz veya Siyah oyna)
-  - Bot vs Bot (iki modeli izle, hız kontrolü)
+- **Game Modes**
+  - Human vs Bot (Play as White or Black)
+  - Bot vs Bot (Watch two models play, speed control)
 
-## 🏗️ Mimari
+## Architecture
 
-```
+```text
 frontend/ (GitHub Pages)  →  backend/ (Render.com)
      HTML/CSS/JS               Flask + PyTorch
 ```
 
-## 🚀 Lokal Kurulum
+## Local Installation
 
-### Backend
 ```bash
-cd backend
-pip install -r requirements.txt
-python app.py
+# Clone the repository and navigate to the directory
+cd ChessEngine
+
+# Install backend dependencies
+pip install -r backend/requirements.txt
+
+# Start the Flask server
+python backend/app.py
 ```
 
-### Frontend
-```bash
-# Doğrudan tarayıcıda aç
-open frontend/index.html
-```
+After starting the server, go to `http://localhost:5001` in your browser.
 
-## 🌐 Production Deploy
+## Production Deployment
 
 ### Backend → Render.com
-1. [render.com](https://render.com) hesabı oluşturun
-2. "New Web Service" → GitHub reponuzu bağlayın
-3. `render.yaml` otomatik algılanır
+1. Create an account on [render.com](https://render.com)
+2. "New Web Service" → Connect your GitHub repository
+3. The `render.yaml` file will be automatically detected
 
 ### Frontend → GitHub Pages
-1. Repo Ayarları → Pages → Source: GitHub Actions
-2. Her `git push` otomatik deploy eder
+1. Repository Settings → Pages → Source: GitHub Actions
+2. Every `git push` automatically deploys the frontend
 
-### ⚠️ Render URL Güncelleme
-`frontend/game.js` içindeki `API_BASE` değişkenini Render URL'iniz ile güncelleyin:
-```javascript
-const API_BASE = 'https://chess-engine-api.onrender.com';
-```
+## Model Information
 
-## 🧠 Model Bilgisi
+| Model | File | Description |
+|-------|------|-------------|
+| Aggressive | `training/checkpoints/cvt_model_epoch_10.pt` | Phase 1 training |
+| Cautious | `training/checkpoints_finetune/cvt_finetune_epoch_5.pt` | Fine-tune |
+| Wise | `training/checkpoints_ultra/cvt_ultra_epoch_3.pt` | Ultra fine-tune |
 
-| Model | Dosya | Açıklama |
-|-------|-------|----------|
-| Agresif | `training/checkpoints/cvt_model_epoch_10.pt` | Phase 1 eğitimi |
-| Tedbirli | `training/checkpoints_finetune/cvt_finetune_epoch_5.pt` | Fine-tune |
-| Akıl | `training/checkpoints_ultra/cvt_ultra_epoch_3.pt` | Ultra fine-tune |
-
-Mimari: CNN + Transformer (CvT), 256d, 8 head, 6 layer, 4096 policy output
+Architecture: CNN + Transformer (CvT), 256d, 8 head, 6 layer, 4096 policy output
