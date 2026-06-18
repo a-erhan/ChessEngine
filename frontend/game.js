@@ -4,10 +4,8 @@
 // CONFIGURATION
 // ══════════════════════════════════════════════════════════════════════
 
-// Backend URL otomatik algilama:
-// GitHub Pages uzerindeysek Render backendine git, yoksa ayni sunucuyu (relative path) kullan.
-const isGitHubPages = window.location.hostname.includes('github.io');
-const API_BASE = isGitHubPages ? 'https://chessengine-q71t.onrender.com' : '';
+// Backend URL: Sadece ayni sunucu uzerinden (Flask) relative path kullanilacak.
+const API_BASE = '';
 
 const MODEL_INFO = {
   agresif:  { label: 'Agresif',  tag: 'E10', class: 'dot-red' },
@@ -366,7 +364,8 @@ async function doBotMove() {
 
   const thinkSide = determineThinkingSide(isWhiteTurn);
   setThinking(thinkSide, true);
-  updateGameInfo(`${MODEL_INFO[modelKey].label} dusunuyor...`, game.moveNumber());
+  const moveNum = Math.floor(game.history().length / 2) + 1;
+  updateGameInfo(`${MODEL_INFO[modelKey].label} dusunuyor...`, moveNum);
 
   try {
     const result = await fetchMove(game.fen(), modelKey);
