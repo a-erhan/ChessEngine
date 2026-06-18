@@ -4,12 +4,11 @@ import chess
 import chess.pgn
 
 class ChessDataset(Dataset):
-    def __init__(self, pgn_file, max_games=None, min_elo=2000, min_moves=25):
-        self.positions = [] 
-        self.move_targets = []   
-        self.value_targets = []
+    def __init__(self, pgn_file, max_games=None, min_elo=2000, min_moves=25, seq_len=5):
+        self.samples = [] 
+        self.seq_len = seq_len
         
-        print(f"📂 PGN okunuyor: {pgn_file} (2D Multi-Channel + Gerçek Değerlendirme)")
+        print(f"📂 PGN okunuyor: {pgn_file} (Zaman Serisi: {seq_len} Hamlelik Pencereler)")
         
         with open(pgn_file, 'r', encoding='utf-8', errors='replace') as f:
             games_parsed = 0
@@ -24,8 +23,6 @@ class ChessDataset(Dataset):
                     break
                     
                 games_parsed += 1
-                if games_parsed % 20000 == 0:
-                    print(f"  [Heartbeat] Taranan toplam oyun: {games_parsed} | Bulunan elit oyun: {elite_games}")
                 
                 try:
                     white_elo = int(game.headers.get("WhiteElo", 0))
@@ -39,38 +36,33 @@ class ChessDataset(Dataset):
                 if game.end().ply() < min_moves * 2:
                     continue
                 
-                # 🚨 YENİ: Maç sonucunu parse et ve sayısal değere çevir
-                result_str = game.headers.get("Result", "*")
-                if result_str == "1-0":
-                    game_value = 1.0  # Beyaz kazandı
-                elif result_str == "0-1":
-                    game_value = -1.0 # Siyah kazandı
-                elif result_str == "1/2-1/2":
-                    game_value = 0.0  # Berabere
-                else:
-                    continue # Sonucu iptal edilmiş veya belirsiz maçları (Örn: "*") atla
-                
                 elite_games += 1
                 board = game.board()
+                fen_history = []
                 
                 for move in game.mainline_moves():
-                    self.positions.append(board.fen())
-                    
+                    fen_history.append(board.fen())
                     move_id = move.from_square * 64 + move.to_square
-                    self.move_targets.append(move_id)
                     
-                    # Her pozisyona, o maçın nihai sonucunu etiketliyoruz
-                    self.value_targets.append(game_value)
+                    # Son 'seq_len' kadar tahtayı al, eğer yeterli hamle yoksa ilk tahtayı kopyalayarak doldur (Padding)
+                    window = []
+                    pad_len = self.seq_len - len(fen_history)
+                    if pad_len > 0:
+                        window.extend([fen_history[0]] * pad_len)
+                        window.extend(fen_history)
+                    else:
+                        window.extend(fen_history[-self.seq_len:])
                     
+                    self.samples.append((window, move_id))
                     board.push(move)
                     
-        print(f"✅ {elite_games} adet derin oyun yüklendi.")
-        print(f"✅ Toplam {len(self.positions)} pozisyon (Hamle + Sonuç) belleğe alındı.")
+        print(f"✅ {elite_games} oyun yüklendi. {len(self.samples)} adet {seq_len}'li zaman serisi oluşturuldu.")
 
     def __len__(self):
-        return len(self.positions)
+        return len(self.samples)
 
-    def board_to_tensor(self, board):
+    def board_to_tensor(self, fen):
+        board = chess.Board(fen)
         tensor = torch.zeros((14, 8, 8), dtype=torch.float32)
         piece_map = board.piece_map()
         
@@ -98,15 +90,13 @@ class ChessDataset(Dataset):
         return tensor
 
     def __getitem__(self, idx):
-        fen = self.positions[idx]
-        move_target = self.move_targets[idx]
-        value_target = self.value_targets[idx]
+        fen_window, target = self.samples[idx]
         
-        board = chess.Board(fen)
-        board_tensor = self.board_to_tensor(board)
+        # 5 adet FEN'i tensöre çevirip üst üste yığıyoruz (Seq, Channels, H, W) -> (5, 14, 8, 8)
+        tensors = [self.board_to_tensor(fen) for fen in fen_window]
+        sequence_tensor = torch.stack(tensors)
         
         return {
-            "board": board_tensor,
-            "move_target": torch.tensor(move_target, dtype=torch.long),
-            "value_target": torch.tensor(value_target, dtype=torch.float32)
+            "board_sequence": sequence_tensor,
+            "move_target": torch.tensor(target, dtype=torch.long)
         }

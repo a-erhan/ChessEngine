@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChessEngine AI — Eğitilmiş Modellerle Satranç</title>
+  <meta name="description" content="Kendi eğittiğim derin öğrenme modelleriyle satranç oynayın. Agresif, Tedbirli ve Akıl modellerini seçin, insan vs bot veya bot vs bot modunda oynayın." />
+
+  <!-- Chess.js & Chessboard.js -->
+  <link rel="stylesheet"
+        href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+  <script src="https://unpkg.com/chess.js@0.10.3/chess.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ════ PARTICLES BACKGROUND ════ -->
+  <div class="particles" id="particles"></div>
+
+  <!-- ════ HEADER ════ -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">♟</span>
+        <span class="logo-text">Chess<span class="logo-accent">Engine</span></span>
+        <span class="logo-badge">AI</span>
+      </div>
+      <div class="header-status" id="headerStatus">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Bağlanıyor...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ════ SETUP SCREEN ════ -->
+  <div class="screen" id="setupScreen">
+    <div class="setup-container">
+
+      <!-- Hero -->
+      <div class="hero">
+        <h1 class="hero-title">
+          Seni <span class="gradient-text">Yapay Zeka</span><br/>ile meydan okuyor
+        </h1>
+        <p class="hero-subtitle">
+          Gerçek derin öğrenme modelleriyle satranç oyna. <br/>
+          Her model farklı bir strateji ile seni bekliyor.
+        </p>
+      </div>
+
+      <!-- Oyun Modu Seçimi -->
+      <div class="section-title">
+        <div class="section-line"></div>
+        <span>Oyun Modu</span>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="mode-grid" id="modeGrid">
+        <div class="mode-card selected" data-mode="human-white" id="modeHumanWhite">
+          <div class="mode-icon">♔</div>
+          <div class="mode-name">Beyaz Oyna</div>
+          <div class="mode-desc">Sen beyaz, AI siyah</div>
+        </div>
+        <div class="mode-card" data-mode="human-black" id="modeHumanBlack">
+          <div class="mode-icon">♚</div>
+          <div class="mode-name">Siyah Oyna</div>
+          <div class="mode-desc">Sen siyah, AI beyaz</div>
+        </div>
+        <div class="mode-card" data-mode="bot-vs-bot" id="modeBotVsBot">
+          <div class="mode-icon">⚔</div>
+          <div class="mode-name">Bot vs Bot</div>
+          <div class="mode-desc">İki AI birbirine karşı</div>
+        </div>
+      </div>
+
+      <!-- Bot vs Bot'ta ikinci model seçimi -->
+      <div class="bot2-section" id="bot2Section" style="display:none;">
+        <div class="section-title">
+          <div class="section-line"></div>
+          <span>Siyah Taraf (2. Model)</span>
+          <div class="section-line"></div>
+        </div>
+        <div class="model-grid" id="model2Grid">
+          <div class="model-card" data-model="agresif" data-slot="2">
+            <div class="model-emoji">🔥</div>
+            <div class="model-name">Agresif</div>
+            <div class="model-desc">Saldırgan stil</div>
+            <div class="model-tag">Epoch 10</div>
+          </div>
+          <div class="model-card selected" data-model="tedbirli" data-slot="2">
+            <div class="model-emoji">🛡️</div>
+            <div class="model-name">Tedbirli</div>
+            <div class="model-desc">Savunma odaklı</div>
+            <div class="model-tag">Finetune E5</div>
+          </div>
+          <div class="model-card" data-model="akil" data-slot="2">
+            <div class="model-emoji">🧠</div>
+            <div class="model-name">Akıl</div>
+            <div class="model-desc">Dengeli strateji</div>
+            <div class="model-tag">Ultra E3</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Model Seçimi -->
+      <div class="section-title">
+        <div class="section-line"></div>
+        <span id="modelSectionLabel">AI Modeli Seç</span>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="model-grid" id="modelGrid">
+        <div class="model-card selected" data-model="agresif" data-slot="1" id="modelAgresif">
+          <div class="model-badge">Beyaz</div>
+          <div class="model-emoji">🔥</div>
+          <div class="model-name">Agresif</div>
+          <div class="model-desc">Saldırgan oynama stili,<br/>risk almaktan çekinmez</div>
+          <div class="model-tag">Phase 1 · Epoch 10</div>
+          <div class="model-stats">
+            <div class="stat"><span class="stat-label">Saldırı</span><div class="stat-bar"><div class="stat-fill" style="width:95%"></div></div></div>
+            <div class="stat"><span class="stat-label">Savunma</span><div class="stat-bar"><div class="stat-fill" style="width:40%"></div></div></div>
+          </div>
+        </div>
+
+        <div class="model-card" data-model="tedbirli" data-slot="1" id="modelTedbirli">
+          <div class="model-badge">Beyaz</div>
+          <div class="model-emoji">🛡️</div>
+          <div class="model-name">Tedbirli</div>
+          <div class="model-desc">Pozisyonu sağlam tutar,<br/>savunma öncelikli</div>
+          <div class="model-tag">Finetune · Epoch 5</div>
+          <div class="model-stats">
+            <div class="stat"><span class="stat-label">Saldırı</span><div class="stat-bar"><div class="stat-fill" style="width:45%"></div></div></div>
+            <div class="stat"><span class="stat-label">Savunma</span><div class="stat-bar"><div class="stat-fill" style="width:90%"></div></div></div>
+          </div>
+        </div>
+
+        <div class="model-card" data-model="akil" data-slot="1" id="modelAkil">
+          <div class="model-badge">Beyaz</div>
+          <div class="model-emoji">🧠</div>
+          <div class="model-name">Akıl</div>
+          <div class="model-desc">Dengeli ve hesaplı,<br/>uzun vadeli strateji</div>
+          <div class="model-tag">Ultra · Epoch 3</div>
+          <div class="model-stats">
+            <div class="stat"><span class="stat-label">Saldırı</span><div class="stat-bar"><div class="stat-fill" style="width:70%"></div></div></div>
+            <div class="stat"><span class="stat-label">Savunma</span><div class="stat-bar"><div class="stat-fill" style="width:75%"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Başlat Butonu -->
+      <button class="start-btn" id="startBtn">
+        <span class="start-icon">♟</span>
+        <span>Oyunu Başlat</span>
+        <span class="start-arrow">→</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ════ GAME SCREEN ════ -->
+  <div class="screen hidden" id="gameScreen">
+    <div class="game-layout">
+
+      <!-- Sol Panel -->
+      <div class="side-panel left-panel">
+        <div class="player-card" id="topPlayerCard">
+          <div class="player-avatar" id="topAvatar">🤖</div>
+          <div class="player-info">
+            <div class="player-name" id="topPlayerName">AI</div>
+            <div class="player-model" id="topPlayerModel">—</div>
+          </div>
+          <div class="player-timer" id="topTimer">
+            <div class="thinking-dots" id="topThinking" style="display:none">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Değerlendirme Çubuğu -->
+        <div class="eval-bar-container">
+          <div class="eval-label" id="evalWhiteLabel">+0.00</div>
+          <div class="eval-bar" id="evalBar">
+            <div class="eval-fill-white" id="evalFillWhite" style="height:50%"></div>
+          </div>
+          <div class="eval-label" id="evalBlackLabel">+0.00</div>
+        </div>
+
+        <div class="player-card" id="bottomPlayerCard">
+          <div class="player-avatar" id="bottomAvatar">👤</div>
+          <div class="player-info">
+            <div class="player-name" id="bottomPlayerName">Sen</div>
+            <div class="player-model" id="bottomPlayerModel">—</div>
+          </div>
+          <div class="player-timer" id="bottomTimer">
+            <div class="thinking-dots" id="bottomThinking" style="display:none">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Merkez: Tahta -->
+      <div class="board-area">
+        <div class="board-wrapper">
+          <div id="chessboard"></div>
+        </div>
+        <!-- Oyun bitti overlay -->
+        <div class="game-over-overlay hidden" id="gameOverOverlay">
+          <div class="game-over-content">
+            <div class="game-over-icon" id="gameOverIcon">🏆</div>
+            <div class="game-over-title" id="gameOverTitle">Oyun Bitti</div>
+            <div class="game-over-reason" id="gameOverReason">—</div>
+            <button class="rematch-btn" id="rematchBtn">
+              <span>Tekrar Oyna</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sağ Panel: Hamle Geçmişi -->
+      <div class="side-panel right-panel">
+        <div class="panel-header">
+          <span class="panel-title">Hamle Geçmişi</span>
+          <button class="icon-btn" id="newGameBtn" title="Yeni Oyun">↩</button>
+        </div>
+
+        <div class="move-list" id="moveList">
+          <div class="move-list-empty">Henüz hamle yapılmadı</div>
+        </div>
+
+        <!-- Durum Bilgisi -->
+        <div class="game-info">
+          <div class="info-row">
+            <span class="info-label">Durum</span>
+            <span class="info-value" id="gameStatusText">Oyun başlıyor...</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Model Değeri</span>
+            <span class="info-value" id="modelValueText">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Hamle</span>
+            <span class="info-value" id="moveCountText">1</span>
+          </div>
+        </div>
+
+        <!-- Bot vs Bot Kontrol -->
+        <div class="bot-controls" id="botControls" style="display:none">
+          <button class="ctrl-btn" id="pauseBtn">⏸ Duraklat</button>
+          <div class="speed-control">
+            <span class="speed-label">Hız</span>
+            <input type="range" id="speedRange" min="200" max="3000" value="1000" step="100" class="speed-slider" />
+            <span class="speed-value" id="speedValue">1.0s</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Bildirimleri -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>

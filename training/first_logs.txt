@@ -1,0 +1,157 @@
+(venv) (base) ahmeterhanavci@Ahmet-MacBook-Pro-2 ChessEngine % python training/train.py
+Using device: mps
+Loading and preprocessing dataset...
+Processed 1000 games...
+Processed 2000 games...
+Processed 3000 games...
+Processed 4000 games...
+Processed 5000 games...
+Processed 6000 games...
+Processed 7000 games...
+Processed 8000 games...
+Processed 9000 games...
+Processed 10000 games...
+Processed 11000 games...
+Processed 12000 games...
+Processed 13000 games...
+Processed 14000 games...
+Processed 15000 games...
+Processed 16000 games...
+Processed 17000 games...
+Processed 18000 games...
+Processed 19000 games...
+Processed 20000 games...
+Processed 21000 games...
+Processed 22000 games...
+Processed 23000 games...
+Processed 24000 games...
+Processed 25000 games...
+Dataset loaded. Total training samples: 1933672
+Starting training loop...
+Epoch 1/10: 100%|█████████████| 3777/3777 [04:28<00:00, 14.06it/s, loss=5.0884]
+Epoch 1 completed. Average Loss: 5.6213
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 2/10: 100%|█████████████| 3777/3777 [04:48<00:00, 13.09it/s, loss=5.0235]
+Epoch 2 completed. Average Loss: 5.0259
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 3/10: 100%|█████████████| 3777/3777 [04:44<00:00, 13.28it/s, loss=4.6638]
+Epoch 3 completed. Average Loss: 4.8335
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 4/10: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3777/3777 [04:49<00:00, 13.04it/s, loss=4.6073]
+Epoch 4 completed. Average Loss: 4.7037
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 5/10: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3777/3777 [05:14<00:00, 12.02it/s, loss=4.6977]
+Epoch 5 completed. Average Loss: 4.6020
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 6/10: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3777/3777 [04:55<00:00, 12.79it/s, loss=4.5798]
+Epoch 6 completed. Average Loss: 4.5169
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 7/10: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3777/3777 [04:49<00:00, 13.06it/s, loss=4.1451]
+Epoch 7 completed. Average Loss: 4.4409
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 8/10: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3777/3777 [04:39<00:00, 13.53it/s, loss=4.3017]
+Epoch 8 completed. Average Loss: 4.3730
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 9/10: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3777/3777 [05:00<00:00, 12.57it/s, loss=4.3381]
+Epoch 9 completed. Average Loss: 4.3182
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 10/10: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3777/3777 [05:22<00:00, 11.72it/s, loss=4.3478]
+Epoch 10 completed. Average Loss: 4.2730
+Checkpoint saved to training/chess_transformer_mvp.pt
+(venv) (base) ahmeterhanavci@Ahmet-MacBook-Pro-2 ChessEngine % python training/train.py
+Using device: mps
+Loading and preprocessing 2014 dataset...
+Opening PGN file: training/games.pgn
+[training/games.pgn] Filtered & added 1000 games... (Total read from file: 7092)
+[training/games.pgn] Filtered & added 2000 games... (Total read from file: 14407)
+[training/games.pgn] Filtered & added 3000 games... (Total read from file: 20062)
+[training/games.pgn] Filtered & added 4000 games... (Total read from file: 26557)
+[training/games.pgn] Filtered & added 5000 games... (Total read from file: 32001)
+[training/games.pgn] Filtered & added 6000 games... (Total read from file: 39541)
+[training/games.pgn] Filtered & added 7000 games... (Total read from file: 48287)
+[training/games.pgn] Filtered & added 8000 games... (Total read from file: 55502)
+[training/games.pgn] Filtered & added 9000 games... (Total read from file: 61273)
+[training/games.pgn] Filtered & added 10000 games... (Total read from file: 68159)
+[training/games.pgn] Filtered & added 11000 games... (Total read from file: 75838)
+[training/games.pgn] Filtered & added 12000 games... (Total read from file: 82684)
+[training/games.pgn] Filtered & added 13000 games... (Total read from file: 89970)
+[training/games.pgn] Filtered & added 14000 games... (Total read from file: 96323)
+[training/games.pgn] Filtered & added 15000 games... (Total read from file: 103837)
+[training/games.pgn] Filtered & added 16000 games... (Total read from file: 111291)
+[training/games.pgn] Filtered & added 17000 games... (Total read from file: 118067)
+[training/games.pgn] Filtered & added 18000 games... (Total read from file: 125210)
+[training/games.pgn] Filtered & added 19000 games... (Total read from file: 131346)
+[training/games.pgn] Filtered & added 20000 games... (Total read from file: 139318)
+[training/games.pgn] Filtered & added 21000 games... (Total read from file: 146295)
+[training/games.pgn] Filtered & added 22000 games... (Total read from file: 152664)
+[training/games.pgn] Filtered & added 23000 games... (Total read from file: 159353)
+[training/games.pgn] Filtered & added 24000 games... (Total read from file: 168411)
+[training/games.pgn] Filtered & added 25000 games... (Total read from file: 174383)
+Successfully loaded 25000 high-quality games from training/games.pgn.
+WARNING: 2013 PGN file not found at 'training/games_2013.pgn'
+Combined dataset loaded successfully. Total training samples (positions): 1853307
+🚀 Found existing checkpoint! Loading weights from: training/chess_transformer_mvp.pt
+Starting training loop for 7 fine-tuning epochs...
+Epoch 1/7: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3620/3620 [04:25<00:00, 13.65it/s, loss=4.1639]
+Epoch 1 completed. Average Loss: 4.2557
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 2/7: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3620/3620 [05:01<00:00, 12.01it/s, loss=4.1125]
+Epoch 2 completed. Average Loss: 4.1786
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 3/7: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3620/3620 [04:38<00:00, 12.99it/s, loss=4.1501]
+Epoch 3 completed. Average Loss: 4.1396
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 4/7: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3620/3620 [04:18<00:00, 14.00it/s, loss=4.1055]
+Epoch 4 completed. Average Loss: 4.1087
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 5/7: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3620/3620 [04:15<00:00, 14.15it/s, loss=4.0399]
+Epoch 5 completed. Average Loss: 4.0855
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 6/7: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3620/3620 [04:20<00:00, 13.90it/s, loss=4.2212]
+Epoch 6 completed. Average Loss: 4.0643
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 7/7: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3620/3620 [04:23<00:00, 13.76it/s, loss=4.2459]
+Epoch 7 completed. Average Loss: 4.0463
+Checkpoint saved to training/chess_transformer_mvp.pt
+(venv) (base) ahmeterhanavci@Ahmet-MacBook-Pro-2 ChessEngine % python training/train.py
+Using device: mps
+Loading 2014 dataset (Target: 5000 games)...
+Opening PGN file: training/games.pgn
+[training/games.pgn] Filtered & added 1000 games... (Total read from file: 7092)
+[training/games.pgn] Filtered & added 2000 games... (Total read from file: 14407)
+[training/games.pgn] Filtered & added 3000 games... (Total read from file: 20062)
+[training/games.pgn] Filtered & added 4000 games... (Total read from file: 26557)
+[training/games.pgn] Filtered & added 5000 games... (Total read from file: 32001)
+Successfully loaded 5000 high-quality games from training/games.pgn.
+Loading 2013 dataset (Target: 7000 games)...
+Opening PGN file: training/games_2013.pgn
+[training/games_2013.pgn] Filtered & added 1000 games... (Total read from file: 8733)
+[training/games_2013.pgn] Filtered & added 2000 games... (Total read from file: 19475)
+[training/games_2013.pgn] Filtered & added 3000 games... (Total read from file: 31032)
+[training/games_2013.pgn] Filtered & added 4000 games... (Total read from file: 38162)
+[training/games_2013.pgn] Filtered & added 5000 games... (Total read from file: 46183)
+[training/games_2013.pgn] Filtered & added 6000 games... (Total read from file: 57056)
+[training/games_2013.pgn] Filtered & added 7000 games... (Total read from file: 66623)
+Successfully loaded 7000 high-quality games from training/games_2013.pgn.
+Dengeli veri seti başarıyla harmanlandı!
+Total training samples (positions): 897605
+🚀 Found existing checkpoint! Loading weights from: training/chess_transformer_mvp.pt
+Starting training loop for 6 fine-tuning epochs...
+Epoch 1/6: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1754/1754 [01:47<00:00, 16.24it/s, loss=3.7375]
+Epoch 1 completed. Average Loss: 4.1059
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 2/6: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1754/1754 [02:13<00:00, 13.09it/s, loss=3.6515]
+Epoch 2 completed. Average Loss: 4.0651
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 3/6: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1754/1754 [02:15<00:00, 12.92it/s, loss=3.9997]
+Epoch 3 completed. Average Loss: 4.0367
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 4/6: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1754/1754 [02:11<00:00, 13.31it/s, loss=3.9586]
+Epoch 4 completed. Average Loss: 4.0148
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 5/6: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1754/1754 [02:11<00:00, 13.36it/s, loss=3.8811]
+Epoch 5 completed. Average Loss: 3.9942
+Checkpoint saved to training/chess_transformer_mvp.pt
+Epoch 6/6: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1754/1754 [02:11<00:00, 13.37it/s, loss=3.4876]
+Epoch 6 completed. Average Loss: 3.9757
+Checkpoint saved to training/chess_transformer_mvp.pt

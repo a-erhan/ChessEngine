@@ -1,0 +1,5 @@
+flask==3.1.1
+flask-cors==5.0.1
+torch==2.7.1
+python-chess==1.999
+gunicorn==23.0.0

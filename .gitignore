@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.env
+*.egg-info/
+dist/
+build/
+
+# PyTorch - büyük dosyalar Git LFS'e gider
+# *.pt — .gitattributes ile LFS'e yönlendirildi
+
+# Data files (çok büyük)
+training/games.pgn
+training/games_3.pgn
+training/games_finetune.pgn
+training/chess_transformer_v2_core.pt
+training/chess_transformer_mvp_v0.pt
+training/chess_transformer_mvp_v1.pt
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+*.txt.bak
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Test artifacts
+training/__pycache__/
+training/debug_*
