@@ -5,9 +5,8 @@
 // ══════════════════════════════════════════════════════════════════════
 
 // Backend URL otomatik algilama:
-// Ayni sunucudan (Flask) servis edildigi icin relative path kullanabiliriz.
-// Eger baska yerden calisacaksa tam URL gerekebilir.
-const API_BASE = window.location.origin;
+const isLocalhost = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+const API_BASE = isLocalhost ? 'http://localhost:5001' : 'https://chessengine-q71t.onrender.com';
 
 const MODEL_INFO = {
   agresif:  { label: 'Agresif',  tag: 'E10', class: 'dot-red' },
@@ -376,18 +375,26 @@ async function doBotMove() {
       return;
     }
 
-    const move = game.move({
-      from: result.from,
-      to: result.to,
-      promotion: result.promotion || 'q',
-    });
-
-    if (!move) {
-      showToast(`Model gecersiz hamle dondurdu: ${result.uci}`, 'error');
-      return;
+    const moveObj = { from: result.from, to: result.to };
+    if (result.promotion) moveObj.promotion = result.promotion;
+    // Satranc tahtasinda 1. veya 8. siraya gelen piyonlar icin otomatik q (vezir) terfisi ekle
+    else if ((result.to.includes('8') || result.to.includes('1')) && game.get(result.from)?.type === 'p') {
+      moveObj.promotion = 'q';
     }
 
-    processMove(move, true, result.value);
+    const move = game.move(moveObj);
+
+    if (!move) {
+      // Eger strict format calismazsa, uci string (orn 'e7e5') uzerinden deneme yapalim (chess.js 0.10.3)
+      const fallbackMove = game.move(result.uci, { sloppy: true });
+      if (!fallbackMove) {
+        showToast(`Model gecersiz hamle dondurdu: ${result.uci}`, 'error');
+        return;
+      }
+      processMove(fallbackMove, true, result.value);
+    } else {
+      processMove(move, true, result.value);
+    }
 
     if (mode === 'bot-vs-bot' && !game.game_over()) {
       setTimeout(() => doBotMove(), gameState.moveDelay);
