@@ -638,3 +638,15 @@ body {
   background: transparent;
   border-radius: 0;
 }
+
+/* ── Footer ── */
+.site-footer {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  font-size: 0.72rem;
+  color: var(--text-3);
+  font-family: var(--mono);
+  z-index: 50;
+  pointer-events: none;
+}
