@@ -616,3 +616,25 @@ body {
   .mode-grid   { grid-template-columns: 1fr; }
   .model-grid  { grid-template-columns: 1fr; }
 }
+
+/* ── Click to Move Highlight ── */
+.highlight-move {
+  position: relative;
+}
+.highlight-move::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 20px; height: 20px;
+  background: rgba(240,192,64, 0.5);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2;
+}
+.highlight-move:has(img)::after {
+  width: 100%; height: 100%;
+  border: 4px solid rgba(240,192,64, 0.5);
+  background: transparent;
+  border-radius: 0;
+}

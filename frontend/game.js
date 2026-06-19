@@ -20,6 +20,7 @@ const MODEL_INFO = {
 
 let game = null;            // chess.js instance
 let board = null;           // chessboard.js instance
+let selectedSquare = null;  // For click-to-move
 let gameState = {
   mode: 'human-white',      // 'human-white' | 'human-black' | 'bot-vs-bot'
   model1: 'agresif',        // beyaz / tek model
@@ -116,6 +117,14 @@ function highlightLastMove(fromSq, toSq) {
   const toEl   = document.querySelector(`.square-${toSq}`);
   if (fromEl) fromEl.classList.add('highlight-from');
   if (toEl)   toEl.classList.add('highlight-to');
+}
+
+function removeGreySquares() {
+  $('#chessboard .square-55d63').removeClass('highlight-move');
+}
+
+function greySquare(square) {
+  $('#chessboard .square-' + square).addClass('highlight-move');
 }
 
 function updateGameInfo(statusText, moveCount) {
@@ -227,6 +236,9 @@ function initGame() {
     position: 'start',
     orientation,
     pieceTheme: 'img/chesspieces/wikipedia/{piece}.png',
+    moveSpeed: 300,
+    snapbackSpeed: 300,
+    snapSpeed: 150,
     onDragStart: onDragStart,
     onDrop: onDrop,
     onSnapEnd: onSnapEnd,
@@ -234,6 +246,8 @@ function initGame() {
 
   if (board) board.destroy();
   board = Chessboard('chessboard', config);
+
+  $('#chessboard').off('click', '.square-55d63').on('click', '.square-55d63', handleSquareClick);
 
   updateGameInfo('Oyun basladi', 1);
   updateEvalBar(0);
@@ -303,6 +317,45 @@ function setupPlayerCards() {
 // HUMAN MOVE HANDLING
 // ══════════════════════════════════════════════════════════════════════
 
+function handleSquareClick(e) {
+  if (game.game_over() || !gameState.running || gameState.paused) return;
+  const humanColor = gameState.mode === 'human-black' ? 'b' : 'w';
+  if (game.turn() !== humanColor || gameState.mode === 'bot-vs-bot') return;
+
+  const square = $(e.currentTarget).attr('data-square');
+  const piece = game.get(square);
+
+  if (selectedSquare) {
+    const moves = game.moves({ square: selectedSquare, verbose: true });
+    const move = moves.find(m => m.to === square);
+    
+    if (move) {
+      const promotion = isPromotion(selectedSquare, square) ? 'q' : undefined;
+      const moveRes = game.move({ from: selectedSquare, to: square, promotion });
+      if (moveRes) {
+        removeGreySquares();
+        selectedSquare = null;
+        processMove(moveRes, false);
+        setTimeout(() => doBotMove(), 300);
+        return;
+      }
+    }
+  }
+
+  if (piece && piece.color === humanColor) {
+    selectedSquare = square;
+    removeGreySquares();
+    greySquare(square);
+    const moves = game.moves({ square: square, verbose: true });
+    for (let i = 0; i < moves.length; i++) {
+      greySquare(moves[i].to);
+    }
+  } else {
+    selectedSquare = null;
+    removeGreySquares();
+  }
+}
+
 function onDragStart(source, piece) {
   if (game.game_over()) return false;
   if (!gameState.running) return false;
@@ -310,10 +363,20 @@ function onDragStart(source, piece) {
   if (game.turn() !== humanColor) return false;
   if ((piece.search(/^b/) !== -1 && humanColor === 'w')) return false;
   if ((piece.search(/^w/) !== -1 && humanColor === 'b')) return false;
+
+  selectedSquare = source;
+  removeGreySquares();
+  const moves = game.moves({ square: source, verbose: true });
+  for (let i = 0; i < moves.length; i++) {
+    greySquare(moves[i].to);
+  }
   return true;
 }
 
 function onDrop(source, target) {
+  removeGreySquares();
+  selectedSquare = null;
+
   const promotion = isPromotion(source, target) ? 'q' : undefined;
   const move = game.move({
     from: source,
